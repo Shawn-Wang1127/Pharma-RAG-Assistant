@@ -1,8 +1,10 @@
 import os
 import logging
+from typing import Generator, Tuple, List
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
@@ -17,14 +19,16 @@ load_dotenv()
 class BioAssistant:
     """
     A Retrieval-Augmented Generation (RAG) assistant tailored for biomedical literature.
-    Integrates DeepSeek-V3 for generation and BGE-M3 for dense retrieval.
+    Integrates DeepSeek-V3 for generation (with streaming) and BGE-M3 for dense retrieval.
     """
     def __init__(self):
+        # Enable streaming=True in the LLM initialization
         self.llm = ChatOpenAI(
             model='deepseek-chat', 
             openai_api_key=os.getenv("DEEPSEEK_API_KEY"), 
             openai_api_base=os.getenv("DEEPSEEK_BASE_URL"),
-            max_tokens=2048
+            max_tokens=2048,
+            streaming=True  # Core change for streaming output
         )
         
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -33,7 +37,7 @@ class BioAssistant:
             separators=["\n\n", "\n", ".", " ", ""]
         )
         
-        logger.info("Initializing BGE-M3 Embedding Model...")
+        logger.info("Initializing BGE-M3 Embedding Model (CPU Mode)...")
         self.embeddings = HuggingFaceEmbeddings(
             model_name="BAAI/bge-m3",
             model_kwargs={'device': 'cpu'},
@@ -66,7 +70,7 @@ class BioAssistant:
         )
         logger.info(f"Vector database successfully built at: {self.persist_directory}")
 
-    def query_knowledge(self, english_query: str):
+    def query_knowledge(self, english_query: str) -> List[Document]:
         """
         Executes Maximal Marginal Relevance (MMR) search to retrieve diverse and relevant chunks.
         """
@@ -80,7 +84,6 @@ class BioAssistant:
                 embedding_function=self.embeddings
             )
         
-        # MMR Search: Fetch 30 documents initially, select 10 diverse documents
         docs = self.vector_db.max_marginal_relevance_search(
             english_query, 
             k=10,            
@@ -89,9 +92,10 @@ class BioAssistant:
         )
         return docs
     
-    def rag_chat(self, question: str):
+    def rag_chat_stream(self, question: str) -> Generator[Tuple[str, List[Document]], None, None]:
         """
-        Full RAG pipeline: Query Translation -> MMR Retrieval -> Augmented Generation.
+        Streaming RAG pipeline: Query Translation -> MMR Retrieval -> Streaming Generation.
+        Yields partial string and context documents progressively.
         """
         logger.info("Step 1: Executing Query Translation...")
         translation_prompt = (
@@ -105,7 +109,8 @@ class BioAssistant:
         logger.info("Step 2: Retrieving context from vector database...")
         context_docs = self.query_knowledge(english_query)
         if not context_docs:
-            return "Failed to retrieve relevant medical literature.", []
+            yield "Failed to retrieve relevant medical literature.", []
+            return
 
         context_text = "\n\n".join([doc.page_content for doc in context_docs])
         
@@ -126,8 +131,12 @@ class BioAssistant:
         请提供专业的深度解析：
         """)
         
-        logger.info("Step 3: Generating augmented response via LLM...")
+        logger.info("Step 3: Streaming augmented response via LLM...")
         chain = prompt_template | self.llm
-        response = chain.invoke({"context": context_text, "question": question})
         
-        return response.content, context_docs
+        # Stream the output chunk by chunk
+        answer = ""
+        for chunk in chain.stream({"context": context_text, "question": question}):
+            if chunk.content:
+                answer += chunk.content
+                yield answer, context_docs
