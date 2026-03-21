@@ -7,6 +7,7 @@ __pycache__/
 
 # 忽略向量数据库
 chroma_db_bge_m3/
+chroma_db/
 
 # 忽略PDF 原文件（ 保留少量demo ）
 data/
