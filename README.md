@@ -2,6 +2,12 @@
 
 基于多模态医学文献（临床指南、PubMed 顶刊、FDA Label）构建的高精度本地 RAG（检索增强生成）问答系统。
 
+
+
+https://github.com/user-attachments/assets/50fdceb4-10a0-49ac-9d7a-a1b6283ac31d
+
+
+
 ## 🌟 项目亮点
 - **处理管线**：支持解析双栏排版与复杂表格的生物医药 PDF，定制化 `RecursiveCharacterTextSplitter` 切片策略，有效保留上下文。
 - **高精度跨语言检索**：集成 `BAAI/bge-m3` 多语言稠密检索模型，突破中英医学术语的向量映射壁垒。
