@@ -2,8 +2,12 @@ langchain
 langchain-openai
 langchain-huggingface
 langchain-chroma
+langchain-community
 chromadb
 gradio
 pypdf
 sentence-transformers
 python-dotenv
+fastapi
+uvicorn
+pydantic
