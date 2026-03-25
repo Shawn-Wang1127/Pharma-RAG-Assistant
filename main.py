@@ -28,18 +28,22 @@ def run_evaluation_pipeline():
     query = "根据 MARIPOSA 试验的相关文献,Amivantamab 联合 lazertinib 相比于奥希替尼单药，在晚期 EGFR 突变非小细胞肺癌中的疗效（如无进展生存期 PFS 或总生存期 OS)表现如何？"
     
     logger.info("Initiating RAG evaluation...")
-    answer, sources = assistant.rag_chat(query)
-    
+    final_answer = ""
+    final_sources = []
+    for partial_answer, sources in assistant.rag_chat_stream(query):
+        final_answer = partial_answer
+        final_sources = sources
+
     # Formatting output
     print("\n" + "="*60)
     print(f"[User Query]: {query}")
     print("-" * 60)
-    print(f"[AI Response]:\n{answer}")
+    print(f"[AI Response]:\n{final_answer}")
     print("-" * 60)
     print("[Source References]:")
     
     seen_sources = set()
-    for doc in sources:
+    for doc in final_sources:
         source_name = doc.metadata.get('source', 'Unknown')
         if source_name not in seen_sources:
             print(f" - {source_name}")
