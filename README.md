@@ -36,6 +36,7 @@ docker run -p 8000:8000 pharma-agent:v3
 👉 **`http://127.0.0.1:8000/docs`**
 
 *(注：以下为 V2.0 阶段 FastAPI 基础接口运行演示视频)*
+
 [https://github.com/user-attachments/assets/211631dc-3af6-4e0e-b46e-2273bac580b8](https://github.com/user-attachments/assets/211631dc-3af6-4e0e-b46e-2273bac580b8)
 
 ---
