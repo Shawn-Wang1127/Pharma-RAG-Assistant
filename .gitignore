@@ -11,3 +11,7 @@ chroma_db/
 
 # 忽略PDF 原文件（ 保留少量demo ）
 data/
+
+#忽略测试生成的图片，但保留数据集CSV文件
+clinical_data/*.png
+!clinical_data/lung_cancer_mock_data.csv
