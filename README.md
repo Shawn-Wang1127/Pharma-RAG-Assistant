@@ -8,9 +8,24 @@
 * **LLM 引擎**: DeepSeek-V3 (兼容 OpenAI API 规范，完美支持 Tool Calling 与错误反思机制)
 * **后端服务框架**: FastAPI + Uvicorn + Pydantic (原生支持静态图表资源路由)
 * **三位一体工具箱 (Tools)**:
-  1. `search_medical_literature`: 本地高保密级别 RAG 检索器 (基于 BAAI/bge-m3 与 ChromaDB)。
+  1. `search_medical_literature`: 本地 RAG 检索器 (基于 BAAI/bge-m3 与 ChromaDB)。
   2. `search_pubmed_literature`: 实时接入 NCBI PubMed API，抓取全球最新医药文献摘要。
   3. `execute_python_code`: 集成 Pandas 与 Matplotlib 的数据分析沙盒，支持动态读取 CSV 并生成统计图表。
+
+---
+
+## 🛠️ 全景技术栈 (Technology Stack)
+
+系统采用高度模块化的微服务架构设计，底层组件完全开源可控：
+
+* 🧠 **AI 与智能体编排**: `LangGraph`, `LangChain`, `DeepSeek-V3` (Tool Calling)
+* 🗄️ **向量检索 (RAG)**: `ChromaDB`, `BAAI/bge-m3` (本地私有化 Embedding)
+* 📊 **数据科学与计算**: `Pandas`, `NumPy`, `SciPy`, `Matplotlib`
+* 🌐 **外部 API 集成**: `Biopython` (NCBI PubMed Entrez API)
+* ⚙️ **后端与服务化**: `FastAPI`, `Uvicorn`, `Pydantic`
+* 🐳 **基础设施**: `Docker` (全栈容器化)
+
+---
 
 ## 🚀 快速开始 (Quick Start with Docker)
 
@@ -36,7 +51,7 @@ docker run -p 8000:8000 pharma-agent:v3.1
 容器启动成功后，访问交互式 API 文档 (Swagger UI)：
 👉 **`http://127.0.0.1:8000/docs`**
 
-Agent 自动生成的数据分析图表可通过静态路由直接访问，例如：
+Agent 生成数据分析图表后可通过静态路由直接访问，例如：
 👉 **`http://127.0.0.1:8000/clinical_data/api_test_chart.png`**
 
 *(注：以下为 V2.0 阶段 FastAPI 基础接口运行演示视频)*
